@@ -20,6 +20,35 @@ services:
     volumes:
       - ./redis_data:/data
 
+  umami:
+    build:
+      context: .
+      dockerfile: Dockerfile.umami
+    container_name: blog-umami
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_started
+    environment:
+      DATABASE_URL: mysql://root:${DB_PASSWORD}@db:3306/umami
+      APP_SECRET: ${UMAMI_APP_SECRET}
+      BASE_PATH: /umami
+
+  frontend:
+    build: ../blog-frontend
+    container_name: blog-frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - umami
+    volumes:
+      - /etc/ssl/cloudflare:/etc/ssl/cloudflare:ro
+
   backend:
     build: ../blog-backend
     container_name: blog-backend
