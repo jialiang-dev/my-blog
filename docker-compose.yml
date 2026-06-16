@@ -20,14 +20,14 @@ services:
     volumes:
       - ./redis_data:/data
 
+  # Umami 访客统计 — 仅生产环境需要，本地 dev 不启动
+  # 启动方式: docker compose --profile production up -d
   umami:
-    build:
-      context: .
-      dockerfile: Dockerfile.umami
+    image: uhub.service.ucloud.cn/myblog_docker/umami:mysql-latest
     container_name: blog-umami
     restart: always
-    ports:
-      - "3000:3000"
+    profiles:
+      - production
     depends_on:
       db:
         condition: service_started
@@ -45,7 +45,6 @@ services:
       - "443:443"
     depends_on:
       - backend
-      - umami
     volumes:
       - /etc/ssl/cloudflare:/etc/ssl/cloudflare:ro
 
