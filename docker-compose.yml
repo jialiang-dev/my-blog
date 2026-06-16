@@ -1,6 +1,6 @@
 services:
   db:
-    image: mysql:8.0
+    image: uhub.service.ucloud.cn/myblog_docker/mysql:8.0
     container_name: blog-db
     restart: always
     ports:
@@ -13,7 +13,7 @@ services:
       - ./mysql-init:/docker-entrypoint-initdb.d
 
   redis:
-    image: redis:latest
+    image: uhub.service.ucloud.cn/myblog_docker/redis:latest
     container_name: blog-redis
     ports:
       - "6379:6379"
@@ -28,13 +28,15 @@ services:
     restart: always
     profiles:
       - production
+    ports:
+      - "3000:3000"
     depends_on:
       db:
         condition: service_started
     environment:
       DATABASE_URL: mysql://root:${DB_PASSWORD}@db:3306/umami
       APP_SECRET: ${UMAMI_APP_SECRET}
-      BASE_PATH: /umami
+      HOSTNAME: 0.0.0.0
 
   frontend:
     build: ../blog-frontend
@@ -46,7 +48,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - /etc/ssl/cloudflare:/etc/ssl/cloudflare:ro
+      - ./ssl:/etc/ssl/cloudflare:ro
 
   backend:
     build: ../blog-backend
